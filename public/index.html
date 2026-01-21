@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Book: Infinite Pink Edition</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Caveat', cursive;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* --- THE PINK COVER CONTAINER --- */
+        .book-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 940px;
+            height: 680px;
+            background-color: #e84a9b;
+            /* BBW Pink */
+            border-radius: 6px;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.5);
+            padding: 0 14px;
+            z-index: 10;
+        }
+
+        #book {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- PAGE STYLES --- */
+        .page {
+            background-color: #fdfdfd;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            cursor: default !important;
+        }
+
+        .page.-left {
+            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
+            background: linear-gradient(to right, #ffffff 80%, #f4f4f4 95%, #e0e0e0 100%);
+            border-right: 1px solid #d9d9d9;
+            box-shadow: inset 10px 0 20px -10px rgba(0, 0, 0, 0.05);
+        }
+
+        .page.-right {
+            border-top-right-radius: 4px;
+            border-bottom-right-radius: 4px;
+            background: linear-gradient(to left, #ffffff 80%, #f4f4f4 95%, #e0e0e0 100%);
+            box-shadow: inset -10px 0 20px -10px rgba(0, 0, 0, 0.05);
+        }
+
+        h1.guest-book {
+            position: absolute;
+            top: 45px;
+            left: 45px;
+            font-family: 'Caveat', cursive;
+            font-weight: 700;
+            font-size: 26px;
+            color: #1a1a1a;
+            letter-spacing: 0.2px;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .entries-meta {
+            position: absolute;
+            top: 50px;
+            left: 20px;
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .page-num {
+            position: absolute;
+            top: 50px;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            color: #888;
+            font-style: italic;
+            pointer-events: none;
+        }
+
+        /* --- THE GRID LINES (SVG) --- */
+        .lines-layer {
+            position: absolute;
+            top: 110px;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 27.5 L40 27.5' stroke='%239fc5f8' stroke-width='1'/%3E%3C/svg%3E");
+            background-repeat: repeat;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page.-left .lines-layer {
+            left: 45px;
+            right: 15px;
+        }
+
+        .page.-right .lines-layer {
+            left: 15px;
+            right: 45px;
+        }
+
+        .entry-line {
+            height: 28px;
+            line-height: 28px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 2px;
+        }
+
+        .entry-text {
+            font-family: 'Caveat', cursive;
+            font-size: 20px;
+            color: #1a1a1a;
+            font-weight: 600;
+            transform: translateY(2px);
+        }
+
+        .entry-name {
+            font-family: 'Caveat', cursive;
+            font-size: 18px;
+            color: #e84a9b;
+            font-style: italic;
+            margin-left: 8px;
+            transform: translateY(2px);
+        }
+
+        .write-placeholder {
+            font-family: 'Caveat', cursive;
+            font-size: 18px;
+            color: #6da9ff;
+            cursor: pointer;
+            transform: translateY(2px);
+        }
+
+        .active-input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'Caveat', cursive;
+            font-size: 20px;
+            color: #1a1a1a;
+            margin: 0;
+            height: 28px;
+            transform: translateY(2px);
+            cursor: text !important;
+        }
+
+        .active-input::placeholder {
+            color: #6da9ff;
+            opacity: 0.6;
+        }
+
+        .pill-nav {
+            position: fixed;
+            bottom: 15px;
+            background: #e84a9b;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+            font-family: sans-serif;
+        }
+
+        .key-icon {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="book-container">
+        <div id="book"></div>
+    </div>
+
+    <div class="pill-nav">Use arrow keys to turn pages <span class="key-icon">←</span> <span class="key-icon">→</span>
+    </div>
+
+    <audio id="flipSound" src="https://www.soundjay.com/books/sounds/book-page-turn-01.mp3"></audio>
+
+    <!-- Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. CONNECTION ---
+            let socket = null;
+            let isOffline = true;
+            try {
+                if (typeof io !== 'undefined') {
+                    socket = io();
+                    isOffline = false;
+                    console.log("Connected to Server");
+                }
+            } catch (e) { }
+
+            // --- 2. CONSTANTS ---
+            const LINES_PER_PAGE = 19;
+            const PAGE_BUFFER = 10;
+            const MAX_CHARS_TEXT = 45;
+            const MAX_CHARS_NAME = 25;
+
+            let entriesMap = new Map();
+            let pageFlipInstance = null;
+            let maxLineIndexDetected = 0;
+
+            // --- 3. DATA LOGIC ---
+            function loadEntries() {
+                const savedData = localStorage.getItem('guestBookData_Pink_Auto');
+                if (savedData) {
+                    const parsed = JSON.parse(savedData);
+                    parsed.forEach(e => {
+                        entriesMap.set(e.line_index, e);
+                        if (e.line_index > maxLineIndexDetected) maxLineIndexDetected = e.line_index;
+                    });
+                }
+
+                if (!isOffline) {
+                    fetch('/entries').then(res => res.json()).then(entries => {
+                        entries.forEach(e => {
+                            entriesMap.set(e.line_index, e);
+                            if (e.line_index > maxLineIndexDetected) maxLineIndexDetected = e.line_index;
+                        });
+                        renderBookSmart(false);
+                    }).catch(() => { });
+
+                    socket.on('new_entry', (entry) => {
+                        entriesMap.set(entry.line_index, entry);
+                        if (entry.line_index > maxLineIndexDetected) maxLineIndexDetected = entry.line_index;
+                        renderBookSmart(false);
+                    });
+                }
+            }
+
+            // --- 4. DOM GENERATION HELPERS ---
+            function getPageContentDOM(pageNum, globalPromptPlacedRef) {
+                const fragment = document.createDocumentFragment();
+                const startLine = (pageNum - 1) * LINES_PER_PAGE;
+
+                for (let i = 0; i < LINES_PER_PAGE; i++) {
+                    const logicalIndex = startLine + i;
+                    const entry = entriesMap.get(logicalIndex);
+
+                    const lineDiv = document.createElement('div');
+                    lineDiv.className = 'entry-line';
+
+                    if (entry) {
+                        const textSpan = document.createElement('span');
+                        textSpan.className = 'entry-text';
+                        textSpan.textContent = entry.text;
+
+                        const nameSpan = document.createElement('span');
+                        nameSpan.className = 'entry-name';
+                        nameSpan.textContent = `- ${entry.name}`;
+
+                        lineDiv.appendChild(textSpan);
+                        lineDiv.appendChild(nameSpan);
+                    } else {
+                        lineDiv.dataset.logicalIndex = logicalIndex;
+                        lineDiv.style.cursor = "pointer";
+
+                        if (!globalPromptPlacedRef.placed) {
+                            const prompt = document.createElement('span');
+                            prompt.className = 'write-placeholder';
+                            prompt.textContent = "Click here to write...";
+                            lineDiv.appendChild(prompt);
+                            lineDiv.dataset.wasPrompt = "true";
+                            globalPromptPlacedRef.placed = true;
+                        }
+
+                        lineDiv.onmousedown = (e) => {
+                            e.stopPropagation();
+                            startWriting(lineDiv);
+                        };
+                    }
+                    fragment.appendChild(lineDiv);
+                }
+                return fragment;
+            }
+
+            function createPageElement(pageNum, globalPromptPlacedRef) {
+                const isLeft = pageNum % 2 !== 0;
+                const page = document.createElement('div');
+                page.className = `page ${isLeft ? '-left' : '-right'}`;
+                page.id = `page-${pageNum}`;
+
+                if (pageNum === 1) {
+                    const title = document.createElement('h1');
+                    title.className = 'guest-book';
+                    title.textContent = "Guest Book";
+                    page.appendChild(title);
+                }
+
+                if (pageNum === 2) {
+                    const stats = document.createElement('div');
+                    stats.className = 'entries-meta';
+                    stats.id = 'stats';
+                    stats.textContent = `${entriesMap.size} entries`;
+                    page.appendChild(stats);
+                }
+
+                const pageNumDiv = document.createElement('div');
+                pageNumDiv.className = 'page-num';
+                pageNumDiv.textContent = pageNum;
+                page.appendChild(pageNumDiv);
+
+                const linesLayer = document.createElement('div');
+                linesLayer.className = 'lines-layer';
+                linesLayer.onmousedown = (e) => e.stopPropagation();
+                linesLayer.appendChild(getPageContentDOM(pageNum, globalPromptPlacedRef));
+                page.appendChild(linesLayer);
+
+                return page;
+            }
+
+            // --- 5. RENDER BOOK (AUTO SCALING) ---
+            function renderBookSmart(firstLoad = false) {
+                const bookEl = document.getElementById('book');
+
+                const lastUsedPage = Math.floor(maxLineIndexDetected / LINES_PER_PAGE) + 1;
+                let neededTotalPages = lastUsedPage + PAGE_BUFFER;
+                if (neededTotalPages < 10) neededTotalPages = 10;
+                if (neededTotalPages % 2 !== 0) neededTotalPages++;
+
+                const globalPromptPlacedRef = { placed: false };
+
+                if (firstLoad) {
+                    bookEl.innerHTML = '';
+
+                    for (let i = 1; i <= neededTotalPages; i++) {
+                        bookEl.appendChild(createPageElement(i, globalPromptPlacedRef));
+                    }
+
+                    setTimeout(() => {
+                        pageFlipInstance = new St.PageFlip(bookEl, {
+                            width: 456,
+                            height: 680,
+                            size: 'fixed',
+                            minWidth: 300,
+                            maxWidth: 1000,
+                            showCover: false,
+                            useMouseEvents: true
+                        });
+                        pageFlipInstance.loadFromHTML(document.querySelectorAll('.page'));
+
+                        const audio = document.getElementById('flipSound');
+                        pageFlipInstance.on('flip', () => { if (audio) { audio.currentTime = 0; audio.play().catch(() => { }); } });
+                    }, 50);
+
+                } else {
+                    const currentCount = pageFlipInstance.getPageCount();
+
+                    if (neededTotalPages > currentCount) {
+                        for (let i = currentCount + 1; i <= neededTotalPages; i++) {
+                            const newPage = createPageElement(i, globalPromptPlacedRef);
+                            bookEl.appendChild(newPage);
+                        }
+                        pageFlipInstance.updateFromHtml(document.querySelectorAll('.page'));
+                    }
+
+                    globalPromptPlacedRef.placed = false;
+
+                    document.querySelectorAll('.page').forEach((page, idx) => {
+                        const pageNum = idx + 1;
+                        const layer = page.querySelector('.lines-layer');
+                        if (layer) {
+                            layer.innerHTML = '';
+                            layer.appendChild(getPageContentDOM(pageNum, globalPromptPlacedRef));
+                        }
+                    });
+
+                    const stats = document.getElementById('stats');
+                    if (stats) stats.textContent = `${entriesMap.size} entries`;
+                }
+            }
+
+            // --- 6. INTERACTION LOGIC ---
+            function startWriting(element) {
+                document.querySelectorAll('.active-input').forEach(el => {
+                    if (el.value === '') {
+                        const parent = el.parentElement;
+                        parent.innerHTML = '';
+                    }
+                });
+
+                if (element.querySelector('input')) return;
+
+                const logicalIndex = parseInt(element.dataset.logicalIndex);
+                element.innerHTML = '';
+
+                const input = document.createElement('input');
+                input.className = 'active-input';
+                input.placeholder = "Write a message...";
+                input.style.width = "65%";
+                input.maxLength = MAX_CHARS_TEXT;
+                input.onmousedown = (e) => e.stopPropagation();
+
+                input.onkeydown = (e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Enter') {
+                        const text = input.value.trim();
+                        if (!text) return;
+
+                        element.innerHTML = '';
+
+                        const textSpan = document.createElement('span');
+                        textSpan.className = 'entry-text';
+                        textSpan.textContent = text;
+                        element.appendChild(textSpan);
+
+                        const nameInput = document.createElement('input');
+                        nameInput.className = 'active-input';
+                        nameInput.style.width = "30%";
+                        nameInput.style.marginLeft = "5px";
+                        nameInput.style.color = "#e84a9b";
+                        nameInput.style.fontStyle = "italic";
+                        nameInput.placeholder = "Name?";
+                        nameInput.maxLength = MAX_CHARS_NAME;
+                        nameInput.onmousedown = (ev) => ev.stopPropagation();
+
+                        element.appendChild(nameInput);
+                        nameInput.focus();
+
+                        nameInput.onkeydown = (ev) => {
+                            ev.stopPropagation();
+                            if (ev.key === 'Enter') {
+                                let name = nameInput.value.trim() || "Anonymous";
+
+                                const newEntry = { text, name, line_index: logicalIndex };
+                                entriesMap.set(logicalIndex, newEntry);
+
+                                if (logicalIndex > maxLineIndexDetected) maxLineIndexDetected = logicalIndex;
+
+                                const dataArray = Array.from(entriesMap.values());
+                                localStorage.setItem('guestBookData_Pink_Auto', JSON.stringify(dataArray));
+                                if (!isOffline && socket) socket.emit('write_entry', newEntry);
+
+                                renderBookSmart(false);
+                            }
+                        }
+                    }
+                };
+                element.appendChild(input);
+                input.focus();
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (document.activeElement.tagName === "INPUT") return;
+                if (e.key === 'ArrowRight' && pageFlipInstance) pageFlipInstance.flipNext();
+                if (e.key === 'ArrowLeft' && pageFlipInstance) pageFlipInstance.flipPrev();
+            });
+
+            loadEntries();
+            renderBookSmart(true);
+        });
+    </script>
+</body>
+
+</html>
